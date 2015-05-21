@@ -102,24 +102,34 @@ str(activity)
 
 ## What is mean total number of steps taken per day?
 
-```r
-# Remove missing values
-completeactivity <- na.omit(activity)
+To answer this question we will first remove the missing values from the dataset.
 
-# Compute the total number of steps taken each day
+
+```r
+completeactivity <- na.omit(activity)
+```
+
+Let's now compute the total number of steps taken each day.
+
+
+```r
 stepsperday <- completeactivity %>%
     group_by(date) %>%
     summarise(totalsteps = sum(steps))
+```
 
-# Make a histogram of the total number of steps taken each day
+We'll now look at a histogram of the total number of steps taken each day.
+
+```r
 hist(stepsperday$totalsteps, main = "Total number of steps taken each day",
      xlab = "Number of steps", breaks = 10, col = "lightskyblue")
 ```
 
-![](PA1_template_files/figure-html/avgsteps-1.png) 
+![](PA1_template_files/figure-html/histtotstepsperday-1.png) 
+
+Finally, we compute the average and the median number of steps taken per day.
 
 ```r
-# Compute the average and the median number of steps taken per day
 mean(stepsperday$totalsteps)
 ```
 
@@ -137,13 +147,19 @@ median(stepsperday$totalsteps)
 
 ## What is the average daily activity pattern?
 
+Let us first compute the average number of steps taken in each 5-minute interval, averaged across all days.
+
+
 ```r
-# Compute the average number of steps taken in each 5-minute interval, averaged across all days
 stepsperinterval <- completeactivity %>%
     group_by(interval) %>%
     summarise(avgsteps = mean(steps))
+```
 
-# Make a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
+We'll now make a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days.
+
+
+```r
 stepsperinterval$time <- strptime(stepsperinterval$interval, "%H:%M")
 
 with(stepsperinterval, plot(time, avgsteps, type = "l", xlab = "5-minute interval",
@@ -151,7 +167,9 @@ with(stepsperinterval, plot(time, avgsteps, type = "l", xlab = "5-minute interva
                             main = "Steps per 5-minute interval"))
 ```
 
-![](PA1_template_files/figure-html/dailypattern-1.png) 
+![](PA1_template_files/figure-html/timeseries-1.png) 
+
+Finally, we'll find the interval having the maximum number of steps.
 
 ```r
 maxsteps <- which.max(stepsperinterval$avgsteps)
@@ -163,6 +181,7 @@ stepsperinterval[maxsteps, 'interval'][[1]]
 ```
 
 ## Imputing missing values
+
 Let's calculate the total number of missing values in the dataset (i.e. the total number of rows with NAs).
 
 
@@ -219,7 +238,7 @@ Let's look at a histogram of the total number of steps taken each day.
 hist(stepsperday2$totalsteps, main = "Total number of steps taken each day", xlab = "Number of steps", breaks = 10, col = "lightskyblue")
 ```
 
-![](PA1_template_files/figure-html/plothist2-1.png) 
+![](PA1_template_files/figure-html/histtotstepsperday2-1.png) 
 
 Compute the average and the median number of steps taken per day
 
@@ -279,7 +298,7 @@ xyplot(avgsteps ~ time | day, data = stepsperinterval2, type = "l", layout = c(1
        main = "Weekday vs weekend activity")
 ```
 
-![](PA1_template_files/figure-html/plotdays-1.png) 
+![](PA1_template_files/figure-html/comparetimeseries-1.png) 
 
 Overall, the shapes are not too dissimilar (the global peak occurs roughly at the same time interval), although the rate of activity appears to be somewhat more consistent at weekends than during weekdays, with a lower global peak.
 

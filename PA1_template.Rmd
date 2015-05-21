@@ -66,43 +66,61 @@ str(activity)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r avgsteps}
-# Remove missing values
-completeactivity <- na.omit(activity)
 
-# Compute the total number of steps taken each day
+To answer this question we will first remove the missing values from the dataset.
+
+```{r narm}
+completeactivity <- na.omit(activity)
+```
+
+Let's now compute the total number of steps taken each day.
+
+```{r totalsteps}
 stepsperday <- completeactivity %>%
     group_by(date) %>%
     summarise(totalsteps = sum(steps))
+```
 
-# Make a histogram of the total number of steps taken each day
+We'll now look at a histogram of the total number of steps taken each day.
+```{r histtotstepsperday}
 hist(stepsperday$totalsteps, main = "Total number of steps taken each day",
      xlab = "Number of steps", breaks = 10, col = "lightskyblue")
+```
 
-# Compute the average and the median number of steps taken per day
+Finally, we compute the average and the median number of steps taken per day.
+```{r avg&median}
 mean(stepsperday$totalsteps)
 median(stepsperday$totalsteps)
 ```
 
 ## What is the average daily activity pattern?
-```{r dailypattern}
-# Compute the average number of steps taken in each 5-minute interval, averaged across all days
+
+Let us first compute the average number of steps taken in each 5-minute interval, averaged across all days.
+
+```{r avginterval}
 stepsperinterval <- completeactivity %>%
     group_by(interval) %>%
     summarise(avgsteps = mean(steps))
+```
 
-# Make a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
+We'll now make a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days.
+
+```{r timeseries}
 stepsperinterval$time <- strptime(stepsperinterval$interval, "%H:%M")
 
 with(stepsperinterval, plot(time, avgsteps, type = "l", xlab = "5-minute interval",
                             ylab = "Average number of steps",
                             main = "Steps per 5-minute interval"))
+```
 
+Finally, we'll find the interval having the maximum number of steps.
+```{r maxinterval}
 maxsteps <- which.max(stepsperinterval$avgsteps)
 stepsperinterval[maxsteps, 'interval'][[1]]
 ```
 
 ## Imputing missing values
+
 Let's calculate the total number of missing values in the dataset (i.e. the total number of rows with NAs).
 
 ```{r countmissingvalues}
@@ -133,12 +151,12 @@ stepsperday2 <- naimputedactivity %>%
 ```
 
 Let's look at a histogram of the total number of steps taken each day.
-```{r plothist2}
+```{r histtotstepsperday2}
 hist(stepsperday2$totalsteps, main = "Total number of steps taken each day", xlab = "Number of steps", breaks = 10, col = "lightskyblue")
 ```
 
 Compute the average and the median number of steps taken per day
-```{r }
+```{r avg&median2}
 mean(stepsperday2$totalsteps)
 median(stepsperday2$totalsteps)
 ```
@@ -163,7 +181,7 @@ for (i in 1:nrow(naimputedactivity)) {
 
 Let's now have a look at weekday and weekend activity patterns. We will first calculate again (this time with missing values imputed as shown above) the average number of steps taken during each 5-minute interval, averaged across all weekdays/weekend days.
 
-```{r dailypattern2}
+```{r avginterval2}
 stepsperinterval2 <- naimputedactivity %>%
     group_by(day, interval) %>%
     summarise(avgsteps = mean(steps))
@@ -174,7 +192,7 @@ stepsperinterval2$time <- as.POSIXct(stepsperinterval2$time)
 
 It's time to compare now the time series for weekdays and weekends.
 
-```{r plotdays}
+```{r comparetimeseries}
 xyplot(avgsteps ~ time | day, data = stepsperinterval2, type = "l", layout = c(1, 2),
        xlab = "Interval", ylab = "Average number of steps",
        main = "Weekday vs weekend activity")
