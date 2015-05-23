@@ -65,31 +65,39 @@ ipak(packages)
 
 ## Loading and preprocessing the data
 
+Unzip and load the data.
+
 ```r
-# Unzip and load data
 unzip("./activity.zip")
 activity <- read.csv("activity.csv", header = T,
                      colClasses = c("numeric", "Date", "character"))
+```
 
-# Convert the `interval` variable to a `HH:MM` string format
-activity$interval_nchar <- sapply(activity$interval, nchar)
-for (i in 1:nrow(activity)) {
-    if (activity[i, 'interval_nchar'] == 1) {
-        activity[i, 'interval'] <- paste0("00:0", activity[i, 'interval'])
-    } else if (activity[i, 'interval_nchar'] == 2) {
-        activity[i, 'interval'] <- paste0("00:", activity[i, 'interval'])
-    } else if (activity[i, 'interval_nchar'] == 3) {
-        activity[i, 'interval'] <- paste0("0",
-                                          substr(activity[i, 'interval'], 1, 1),
-                                          ":",
-                                          substr(activity[i, 'interval'], 2, 3))
-    } else {
-        activity[i, 'interval'] <- paste0(substr(activity[i, 'interval'], 1, 2),
-                                          ":",
-                                          substr(activity[i, 'interval'], 3, 4))
-    }
-}
-activity <- activity[, -4]
+Convert the `interval` variable to a `HH:MM` string format.
+
+```r
+# activity$interval_nchar <- sapply(activity$interval, nchar)
+# for (i in 1:nrow(activity)) {
+#     if (activity[i, 'interval_nchar'] == 1) {
+#         activity[i, 'interval'] <- paste0("00:0", activity[i, 'interval'])
+#     } else if (activity[i, 'interval_nchar'] == 2) {
+#         activity[i, 'interval'] <- paste0("00:", activity[i, 'interval'])
+#     } else if (activity[i, 'interval_nchar'] == 3) {
+#         activity[i, 'interval'] <- paste0("0",
+#                                           substr(activity[i, 'interval'], 1, 1),
+#                                           ":",
+#                                           substr(activity[i, 'interval'], 2, 3))
+#     } else {
+#         activity[i, 'interval'] <- paste0(substr(activity[i, 'interval'], 1, 2),
+#                                           ":",
+#                                           substr(activity[i, 'interval'], 3, 4))
+#     }
+# }
+# activity <- activity[, -4]
+# str(activity)
+
+activity$interval <- as.numeric(activity$interval)
+activity$interval <- paste(floor(activity$interval / 100), activity$interval %% 100, sep = ":")
 str(activity)
 ```
 
@@ -97,10 +105,10 @@ str(activity)
 ## 'data.frame':	17568 obs. of  3 variables:
 ##  $ steps   : num  NA NA NA NA NA NA NA NA NA NA ...
 ##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
-##  $ interval: chr  "00:00" "00:05" "00:10" "00:15" ...
+##  $ interval: chr  "0:0" "0:5" "0:10" "0:15" ...
 ```
 
-## What is mean total number of steps taken per day?
+## What is the mean total number of steps taken per day?
 
 To answer this question we will first remove the missing values from the dataset.
 
@@ -161,10 +169,10 @@ We'll now make a time series plot of the 5-minute interval and the average numbe
 
 ```r
 stepsperinterval$time <- strptime(stepsperinterval$interval, "%H:%M")
+# Order observations chronologically
+stepsperinterval <- stepsperinterval[order(stepsperinterval$time), ]
 
-with(stepsperinterval, plot(time, avgsteps, type = "l", xlab = "5-minute interval",
-                            ylab = "Average number of steps",
-                            main = "Steps per 5-minute interval"))
+with(stepsperinterval, plot(time, avgsteps, type = "l", xlab = "5-minute interval", ylab = "Average number of steps", main = "Steps per 5-minute interval"))
 ```
 
 ![](PA1_template_files/figure-html/timeseries-1.png) 
@@ -177,7 +185,7 @@ stepsperinterval[maxsteps, 'interval'][[1]]
 ```
 
 ```
-## [1] "08:35"
+## [1] "8:35"
 ```
 
 ## Imputing missing values
@@ -211,16 +219,16 @@ head(naimputedactivity, 10)
 
 ```
 ##        steps       date interval
-## 1  1.7169811 2012-10-01    00:00
-## 2  0.3396226 2012-10-01    00:05
-## 3  0.1320755 2012-10-01    00:10
-## 4  0.1509434 2012-10-01    00:15
-## 5  0.0754717 2012-10-01    00:20
-## 6  2.0943396 2012-10-01    00:25
-## 7  0.5283019 2012-10-01    00:30
-## 8  0.8679245 2012-10-01    00:35
-## 9  0.0000000 2012-10-01    00:40
-## 10 1.4716981 2012-10-01    00:45
+## 1  1.7169811 2012-10-01      0:0
+## 2  0.3396226 2012-10-01      0:5
+## 3  0.1320755 2012-10-01     0:10
+## 4  0.1509434 2012-10-01     0:15
+## 5  0.0754717 2012-10-01     0:20
+## 6  2.0943396 2012-10-01     0:25
+## 7  0.5283019 2012-10-01     0:30
+## 8  0.8679245 2012-10-01     0:35
+## 9  0.0000000 2012-10-01     0:40
+## 10 1.4716981 2012-10-01     0:45
 ```
 
 We will now calculate again the total number of steps taken each day.
@@ -287,6 +295,7 @@ stepsperinterval2 <- naimputedactivity %>%
 
 stepsperinterval2$time <- strptime(stepsperinterval2$interval, "%H:%M")
 stepsperinterval2$time <- as.POSIXct(stepsperinterval2$time)
+stepsperinterval2 <- stepsperinterval2[order(stepsperinterval2$time), ]
 ```
 
 It's time to compare now the time series for weekdays and weekends.
